@@ -51,6 +51,15 @@ difference that is not listed is a bug.
 - **SHA3 message digests are reported as SHA3.** Go's decoder accepted a
   SHA3-256 or SHA3-512 digest but reported it as SHA256 or SHA512 (in
   `fwknopd`'s "Digest Type" log line, for example).
+- **`fwknop-convert` output loads.** Go's converter copied booleans and
+  numbers through as strings in places its own binaries could not read
+  them: a converted rc file with `USE_HMAC Y` became `use_hmac: Y`, which
+  the client rejected, and `FW_ACCESS_TIMEOUT 30` became
+  `access_timeout: "30"`, which made the server refuse the whole
+  `access.yaml`. fwknop-rs writes real booleans and integers (`use_hmac:
+  true`, `access_timeout: 30`, `udp_port: 62201`, `verbose: true`). A C
+  `VERBOSE` level above 1 becomes `verbose: true`, since fwknopd's
+  `verbose` is a boolean.
 - **Unknown placeholders are caught at startup.** Go accepted `{{.Typo}}` in
   an action and failed only when a packet arrived.
 

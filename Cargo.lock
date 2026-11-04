@@ -493,6 +493,7 @@ dependencies = [
  "anyhow",
  "buildinfo",
  "clap",
+ "cli-common",
  "serde",
  "serde-saphyr",
  "tempfile",
