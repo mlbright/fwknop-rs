@@ -45,9 +45,6 @@ difference that is not listed is a bug.
   order.
 - **Syslog messages carry their real severity** (`LOG_WARNING`, `LOG_ERR`).
   Go sent everything at `LOG_INFO` with a text prefix.
-- **`cmd_exec_user` works on macOS.** Go ran `su -c <cmd> <user>`, which
-  macOS `su` rejects; fwknop-rs runs `su <user> -c <cmd>`, which works on
-  Linux and macOS.
 - **SHA3 message digests are reported as SHA3.** Go's decoder accepted a
   SHA3-256 or SHA3-512 digest but reported it as SHA256 or SHA512 (in
   `fwknopd`'s "Digest Type" log line, for example).
@@ -70,8 +67,9 @@ difference that is not listed is a bug.
   `server.yaml` is ignored like any other unknown key; the two flags are now
   rejected as unknown. `fwknop-convert` no longer emits `run_dir` or
   `nat_port`.
-- Windows support. Go's `fwknopd` never built on Windows; fwknop-rs supports
-  Linux and macOS only.
+- Platforms other than Linux. Go's `fwknopd` never built on Windows but
+  did run on macOS and the BSDs; fwknop-rs supports Linux only (see
+  [ADR 0002](adr/0002-translation-scope.md)).
 - The `lib`, `retest` and `tidy` Makefile targets, which have no Cargo
   equivalent. `vet` is now `lint`.
 

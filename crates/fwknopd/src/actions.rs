@@ -259,9 +259,10 @@ fn rule_key(ctx: &TemplateContext) -> String {
     format!("{}/{}/{}", ctx.source_ip, ctx.proto, ctx.port)
 }
 
-/// The command for a server command. With a user it runs through `su`,
-/// with the command as a single argument, so it runs only as that user
-/// (`su <user> -c <cmd>` works with both Linux and macOS `su`).
+/// The command for a server command. With a user it runs through
+/// `su -c <cmd> <user>`, with the command as a single argument, so it runs
+/// only as that user; wrapping it in a root shell would let a quote in the
+/// command escape into the root shell.
 pub fn server_command(cmd: &str, user: &str) -> Command {
     if user.is_empty() {
         let mut c = Command::new("/bin/sh");
@@ -269,7 +270,7 @@ pub fn server_command(cmd: &str, user: &str) -> Command {
         c
     } else {
         let mut c = Command::new("su");
-        c.arg(user).arg("-c").arg(cmd);
+        c.arg("-c").arg(cmd).arg(user);
         c
     }
 }
@@ -643,7 +644,7 @@ mod tests {
         let c = server_command("id; echo 'x'", "alice");
         assert_eq!(c.get_program(), "su");
         let args: Vec<_> = c.get_args().collect();
-        assert_eq!(args, ["alice", "-c", "id; echo 'x'"]);
+        assert_eq!(args, ["-c", "id; echo 'x'", "alice"]);
         let c = server_command("uptime", "");
         assert_eq!(c.get_program(), "/bin/sh");
         assert_eq!(c.get_args().collect::<Vec<_>>(), ["-c", "uptime"]);
