@@ -42,6 +42,9 @@ difference that is not listed is a bug.
 - **`cmd_exec_user` works on macOS.** Go ran `su -c <cmd> <user>`, which
   macOS `su` rejects; fwknop-rs runs `su <user> -c <cmd>`, which works on
   Linux and macOS.
+- **SHA3 message digests are reported as SHA3.** Go's decoder accepted a
+  SHA3-256 or SHA3-512 digest but reported it as SHA256 or SHA512 (in
+  `fwknopd`'s "Digest Type" log line, for example).
 - **Unknown placeholders are caught at startup.** Go accepted `{{.Typo}}` in
   an action and failed only when a packet arrived.
 

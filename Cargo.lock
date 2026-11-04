@@ -274,6 +274,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1c133bc6a41be0d194c306b5506d15e6feeea7b1d6604bd3f8310dfb2ca96486"
 
 [[package]]
+name = "cli-common"
+version = "0.1.0"
+dependencies = [
+ "jiff",
+ "serde",
+ "serde-saphyr",
+]
+
+[[package]]
 name = "cmov"
 version = "0.5.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -466,12 +475,15 @@ dependencies = [
  "base64",
  "buildinfo",
  "clap",
+ "cli-common",
  "fkospa",
+ "fwknop",
  "jiff",
  "serde",
  "serde-saphyr",
  "tempfile",
  "ureq",
+ "zeroize",
 ]
 
 [[package]]

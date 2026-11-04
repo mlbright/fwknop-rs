@@ -14,6 +14,7 @@ homepage = "https://github.com/mlbright/fwknop-rs"
 fkospa = { path = "crates/fkospa", version = "0.1.0" }
 fwknop = { path = "crates/fwknop", version = "0.1.0" }
 buildinfo = { path = "crates/buildinfo" }
+cli-common = { path = "crates/cli-common" }
 
 # Crypto (RustCrypto)
 aes = "0.9"

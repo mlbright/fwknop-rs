@@ -18,11 +18,14 @@ path = "src/main.rs"
 anyhow.workspace = true
 base64.workspace = true
 buildinfo.workspace = true
+cli-common.workspace = true
 clap.workspace = true
 fkospa.workspace = true
+fwknop.workspace = true
 jiff.workspace = true
 serde.workspace = true
 serde-saphyr.workspace = true
+zeroize.workspace = true
 ureq = { workspace = true, default-features = false, features = ["rustls"] }
 
 [dev-dependencies]
