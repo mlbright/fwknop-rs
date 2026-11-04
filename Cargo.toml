@@ -39,7 +39,7 @@ serde = { version = "1", features = ["derive"] }
 serde-saphyr = "2.1"
 
 # System and runtime
-tokio = { version = "1.54", features = ["rt", "net", "time", "signal", "process", "macros", "io-util"] }
+tokio = { version = "1.54", features = ["rt", "net", "time", "signal", "macros"] }
 nix = { version = "0.31", features = ["user", "signal", "process", "fs", "syslog"] }
 libc = "0.2"
 socket2 = "0.6"

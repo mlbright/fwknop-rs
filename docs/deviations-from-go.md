@@ -21,6 +21,12 @@ difference that is not listed is a bug.
   still reported on the terminal with a non-zero exit code, because they
   happen before the server detaches. It refuses to start when the PID file
   names a running fwknopd.
+- **Replay protection stays on when `max_spa_packet_age` is 0.** Go sized
+  the replay cache's lifetime from the max packet age, so with the age check
+  off every replayed packet was accepted. fwknop-rs then keeps replay
+  digests for the life of the process.
+- **The PID file is removed on shutdown.** Go deferred the removal but left
+  through `os.Exit`, which skips deferred calls.
 - **PID files are parsed correctly.** Go dropped the last byte of the file
   unconditionally: an empty file crashed `-S`, `-K` and `-R`, and a PID file
   without a trailing newline lost a digit.
