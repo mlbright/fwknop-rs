@@ -57,6 +57,15 @@ difference that is not listed is a bug.
   true`, `access_timeout: 30`, `udp_port: 62201`, `verbose: true`). A C
   `VERBOSE` level above 1 becomes `verbose: true`, since fwknopd's
   `verbose` is a boolean.
+- **The nftables action template opens ports.** Go's template created its
+  own `inet fwknop` table and added `accept` rules there. In nftables an
+  accept only ends the chain it is in, so the packet still met the drop in
+  the host's own input chain and the port stayed closed; and for an IPv6
+  allow IP its `open` failed (`ip saddr ::1`). The new template adds rules to
+  a `fwknop_input` chain in the `inet filter` table, jumped to from that
+  table's `input` chain, and matches `ip6 saddr` for IPv6. Both the problem
+  and the fix were checked against the kernel firewall (`make
+  firewall-test`).
 - **Unknown placeholders are caught at startup.** Go accepted `{{.Typo}}` in
   an action and failed only when a packet arrived.
 
@@ -69,7 +78,10 @@ difference that is not listed is a bug.
   `nat_port`.
 - Platforms other than Linux. Go's `fwknopd` never built on Windows but
   did run on macOS and the BSDs; fwknop-rs supports Linux only (see
-  [ADR 0002](adr/0002-translation-scope.md)).
+  [ADR 0002](adr/0002-translation-scope.md)). The pf, ipfw and ipf action
+  templates and `examples/configs/server-pf.yaml` are gone, and
+  `fwknop-convert` warns about legacy pf and ipfw settings instead of setting
+  `action_template: pf.yaml` or `ipfw.yaml`.
 - The `lib`, `retest` and `tidy` Makefile targets, which have no Cargo
   equivalent. `vet` is now `lint`.
 

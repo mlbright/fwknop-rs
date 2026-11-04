@@ -277,7 +277,6 @@ mod tests {
             "conf_files/server.yaml",
             "examples/configs/server-iptables.yaml",
             "examples/configs/server-nftables.yaml",
-            "examples/configs/server-pf.yaml",
         ] {
             let path = root.join(rel);
             if !path.exists() {

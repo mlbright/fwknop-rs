@@ -1,4 +1,9 @@
-# Server configuration using nftables for action management.
+# Server configuration using nftables for action management (recommended).
+#
+# The nftables template adds its rules to a fwknop_input chain in your
+# "inet filter" table, jumped to from that table's "input" chain, so your
+# ruleset needs that table and chain (Debian's and Ubuntu's stock
+# /etc/nftables.conf has them). See conf_files/actions/nftables.yaml.
 udp_port: 62201
 bind_address: "0.0.0.0"
 log_file: /var/log/fwknop/fwknopd.log

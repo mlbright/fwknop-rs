@@ -29,7 +29,7 @@ RuntimeDirectoryMode=0750
 LogsDirectory=fwknop
 LogsDirectoryMode=0750
 
-# fwknopd manages the host firewall (iptables / nftables / firewalld / pf),
+# fwknopd manages the host firewall (nftables / iptables / firewalld),
 # which requires CAP_NET_ADMIN. CAP_NET_RAW covers tools that need raw sockets.
 # The service still starts as root, but its capabilities are bounded to this set.
 AmbientCapabilities=CAP_NET_ADMIN CAP_NET_RAW

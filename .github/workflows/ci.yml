@@ -37,6 +37,27 @@ jobs:
       - name: Test
         run: make test
 
+  firewall:
+    name: Kernel firewall (Linux)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install nftables and iptables
+        run: sudo apt-get update && sudo apt-get install -y nftables iptables
+
+      - name: Install Rust
+        run: rustup toolchain install
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build
+        run: cargo build -p fwknop-cli -p fwknopd
+
+      # Runs inside a throwaway network namespace; see the script.
+      - name: nftables and iptables templates against the kernel firewall
+        run: sudo test/firewall/run.sh target/debug
+
   interop:
     name: Go interop (Linux)
     runs-on: ubuntu-latest

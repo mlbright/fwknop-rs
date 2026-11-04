@@ -79,6 +79,7 @@ Other targets:
 ```bash
 make test       # Run all tests
 make interop    # Build fwknop-go and run the Go <-> Rust interop tests
+make firewall-test  # Test the nftables and iptables templates on the kernel firewall (sudo)
 make lint       # cargo clippy with warnings as errors
 make fmt        # cargo fmt
 make install    # cargo install the three binaries
@@ -88,6 +89,9 @@ make help       # List all targets
 `make interop` builds fwknop-go from `FWKNOP_GO_DIR` (default
 `../fwknop-go`) at `FWKNOP_GO_REF` (default `mlbright/main`), using
 `git archive` so the checkout is not touched, and needs Go installed.
+`make firewall-test` runs `test/firewall/run.sh` with sudo; everything it
+does happens inside a throwaway network namespace, so the host's firewall
+is not touched.
 
 To install `fwknopd` as a systemd service (Linux), see
 [Running fwknopd under systemd](#running-fwknopd-under-systemd):
@@ -285,8 +289,42 @@ Any key can also be set with an environment variable prefixed with
 
 ### Actions
 
-Actions are the shell commands fwknopd runs at each lifecycle step. All six
-are optional:
+Actions are the shell commands fwknopd runs at each lifecycle step. The
+simplest way to get them is an action template for your firewall, looked up
+in `action_dir` (default `/etc/fwknop/actions`):
+
+```yaml
+action_template: nftables.yaml
+```
+
+Templates are provided in `conf_files/actions/` for **nftables**
+(recommended), **iptables** and **firewalld**:
+
+- **nftables** adds its rules to a `fwknop_input` chain in your own
+  `inet filter` table and jumps to it from the top of that table's `input`
+  chain, so an opened port is accepted before your default drop. These are
+  the names in Debian's and Ubuntu's stock `/etc/nftables.conf`; if your
+  ruleset uses others, copy the template and change them. It handles IPv4
+  and IPv6 allow IPs.
+- **iptables** does the same with an `FWKNOP_INPUT` chain jumped to from
+  `INPUT`, for IPv4.
+
+Both are tested against the kernel firewall (`make firewall-test`).
+
+You can also write actions inline; all six are optional, and inline actions
+override a template's one at a time. With nftables (IPv4 allow IPs only; the
+template also handles IPv6):
+
+```yaml
+actions:
+  validate: "nft list chain inet filter input > /dev/null"
+  init: "nft add chain inet filter fwknop_input && nft insert rule inet filter input jump fwknop_input"
+  open: "nft add rule inet filter fwknop_input ip saddr {{.SourceIP}} {{.Proto}} dport {{.Port}} accept comment '\"fwknop-{{.SourceIP}}-{{.Proto}}-{{.Port}}\"'"
+  close: "nft -a list chain inet filter fwknop_input | grep -F 'fwknop-{{.SourceIP}}-{{.Proto}}-{{.Port}}' | awk '{print $NF}' | xargs -r -I{} nft delete rule inet filter fwknop_input handle {}"
+  shutdown: "nft -a list chain inet filter input | awk '/jump fwknop_input/ {print $NF}' | xargs -r -I{} nft delete rule inet filter input handle {}; nft flush chain inet filter fwknop_input; nft delete chain inet filter fwknop_input"
+```
+
+With iptables:
 
 ```yaml
 actions:
@@ -297,17 +335,6 @@ actions:
   close: "iptables -D FWKNOP_INPUT -s {{.SourceIP}} -p {{.Proto}} --dport {{.Port}} -j ACCEPT"
   shutdown: "iptables -F FWKNOP_INPUT; iptables -D INPUT -j FWKNOP_INPUT; iptables -X FWKNOP_INPUT"
 ```
-
-Or use an action template for your firewall, from `action_dir` (default
-`/etc/fwknop/actions`); inline actions override the template's one at a
-time:
-
-```yaml
-action_template: nftables.yaml
-```
-
-Action templates are provided for iptables, nftables, firewalld, pf, ipfw
-and ipf in `conf_files/actions/`.
 
 | Step | When | On failure |
 |------|------|------------|
@@ -441,9 +468,9 @@ sudo make install-systemd PREFIX=/usr SYSCONFDIR=/etc/fwknop UNITDIR=/lib/system
 
    Keep `access.yaml` readable only by root (`chmod 600`) since it holds keys.
 
-3. Set the firewall `actions` (or `action_template`) in `server.yaml` for
-   your platform. See [Actions](#actions) and the templates in
-   `/etc/fwknop/actions/`.
+3. Set `action_template: nftables.yaml` in `server.yaml` (or
+   `iptables.yaml`, `firewalld.yaml`, or your own `actions`). See
+   [Actions](#actions) and the templates in `/etc/fwknop/actions/`.
 
 4. Check the config before enabling the service:
 
@@ -546,7 +573,7 @@ fwknop-convert --type server --input /etc/fwknop/fwknopd.conf > server.yaml
 fwknop-convert --type access --input /etc/fwknop/access.conf > access.yaml
 ```
 
-Keys with no equivalent (GPG, pcap, iptables-specific settings, …) produce
+Keys with no equivalent (GPG, pcap, firewall-specific settings, …) produce
 warnings on stderr, with suggestions where there is one. A legacy firewall
 configuration is detected and turned into the matching `action_template`.
 
@@ -564,6 +591,10 @@ fwknop-rs is checked against the other implementations:
   replay cases, from the Rust client to the Go server and from the Go client
   to the Rust server, and checks that both converters produce the same
   configuration.
+- **The kernel firewall**: `make firewall-test` knocks through a default-drop
+  nftables and iptables firewall in a network namespace, checking that the
+  port opens, closes on time, is not opened twice, and that shutdown removes
+  everything fwknopd added.
 
 ## License
 

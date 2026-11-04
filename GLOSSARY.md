@@ -93,7 +93,7 @@ The shell command the server runs for one lifecycle step: validate, init, check,
 _Avoid_: hook, firewall command, template
 
 **Action template**:
-A file supplying the actions for one kind of firewall (iptables, nftables, pf and so on).
+A file supplying the actions for one kind of firewall (nftables, iptables or firewalld).
 _Avoid_: firewall profile, backend, template (unqualified)
 
 **Placeholder**:

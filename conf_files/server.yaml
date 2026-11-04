@@ -8,16 +8,31 @@ verbose: true
 pid_file: /tmp/fwknopd-test.pid
 max_spa_packet_age: 120
 
-# Action templates define the commands executed on validated SPA requests.
-# Use a predefined template file (looked up in action_dir):
+# Actions are the commands fwknopd runs to open and close access. The
+# simplest way to get them is an action template, looked up in action_dir:
 #
-#   action_template: iptables.yaml
-#   action_dir: /etc/fwknop/actions   # default on Unix
+#   action_template: nftables.yaml
+#   action_dir: /etc/fwknop/actions   # the default
 #
-# Available templates: iptables.yaml, nftables.yaml, firewalld.yaml, pf.yaml
-# You can also specify an absolute path to a custom template file.
+# Available templates: nftables.yaml (recommended), iptables.yaml and
+# firewalld.yaml. You can also give an absolute path to your own template.
 #
-# Alternatively, define actions inline (overrides template on per-field basis):
+# The nftables template adds its rules to a fwknop_input chain in your
+# "inet filter" table, jumped to from that table's "input" chain (the names in
+# Debian's and Ubuntu's stock /etc/nftables.conf). The iptables template does
+# the same with an FWKNOP_INPUT chain jumped to from INPUT (IPv4 only).
+#
+# Alternatively, define actions inline; they override the template's one at a
+# time. With nftables (IPv4 allow IPs only; the template also handles IPv6):
+#
+# actions:
+#   validate: "nft list chain inet filter input > /dev/null"
+#   init: "nft add chain inet filter fwknop_input && nft insert rule inet filter input jump fwknop_input"
+#   open: "nft add rule inet filter fwknop_input ip saddr {{.SourceIP}} {{.Proto}} dport {{.Port}} accept comment '\"fwknop-{{.SourceIP}}-{{.Proto}}-{{.Port}}\"'"
+#   close: "nft -a list chain inet filter fwknop_input | grep -F 'fwknop-{{.SourceIP}}-{{.Proto}}-{{.Port}}' | awk '{print $NF}' | xargs -r -I{} nft delete rule inet filter fwknop_input handle {}"
+#   shutdown: "nft -a list chain inet filter input | awk '/jump fwknop_input/ {print $NF}' | xargs -r -I{} nft delete rule inet filter input handle {}; nft flush chain inet filter fwknop_input; nft delete chain inet filter fwknop_input"
+#
+# Or with iptables:
 #
 # actions:
 #   validate: "which iptables"
@@ -27,5 +42,5 @@ max_spa_packet_age: 120
 #   close: "iptables -D FWKNOP_INPUT -s {{.SourceIP}} -p {{.Proto}} --dport {{.Port}} -j ACCEPT"
 #   shutdown: "iptables -F FWKNOP_INPUT; iptables -D INPUT -j FWKNOP_INPUT; iptables -X FWKNOP_INPUT"
 #
-# Template variables: {{.SourceIP}}, {{.Proto}}, {{.Port}}, {{.Username}},
+# Placeholders: {{.SourceIP}}, {{.Proto}}, {{.Port}}, {{.Username}},
 #   {{.Timestamp}}, {{.Timeout}}, {{.AccessMsg}}, {{.NATAccess}}

@@ -1,9 +1,38 @@
 # nftables action template for fwknopd.
-# Creates a dedicated inet fwknop table and input chain.
-# Rules are tagged with comments for targeted deletion.
-validate: "which nft"
-init: "nft add table inet fwknop; nft add chain inet fwknop input '{ type filter hook input priority -1; policy accept; }'"
-check: "nft list chain inet fwknop input | grep -q '{{.SourceIP}} {{.Proto}} dport {{.Port}} accept'"
-open: "nft add rule inet fwknop input ip saddr {{.SourceIP}} {{.Proto}} dport {{.Port}} accept comment \\\"fwknop-{{.SourceIP}}-{{.Proto}}-{{.Port}}\\\""
-close: "nft -a list chain inet fwknop input | grep 'fwknop-{{.SourceIP}}-{{.Proto}}-{{.Port}}' | awk '{print $NF}' | xargs -I{} nft delete rule inet fwknop input handle {}"
-shutdown: "nft delete table inet fwknop 2>/dev/null"
+#
+# fwknopd adds its rules to a fwknop_input chain that it creates in your own
+# "inet filter" table, and jumps to it from the top of that table's "input"
+# chain, so an opened port is accepted before your default drop. These are
+# the names in Debian's and Ubuntu's stock /etc/nftables.conf; if your
+# ruleset uses others, replace "inet filter" and "input" below.
+#
+# (A table of fwknopd's own would not work: in nftables an accept only ends
+# the chain it is in, so your input chain would still drop the packet.)
+#
+# Rules carry a "fwknop-<ip>-<proto>-<port>" comment so close can find them,
+# and match on "ip saddr" or "ip6 saddr" depending on the allow IP.
+validate: nft list chain inet filter input > /dev/null
+init: >-
+  nft add chain inet filter fwknop_input &&
+  { nft list chain inet filter input | grep -qF 'jump fwknop_input' ||
+  nft insert rule inet filter input jump fwknop_input; }
+check: >-
+  nft list chain inet filter fwknop_input
+  | grep -qF 'comment "fwknop-{{.SourceIP}}-{{.Proto}}-{{.Port}}"'
+open: >-
+  nft add rule inet filter fwknop_input
+  $(case {{.SourceIP}} in *:*) echo ip6 ;; *) echo ip ;; esac) saddr {{.SourceIP}}
+  {{.Proto}} dport {{.Port}} accept
+  comment '"fwknop-{{.SourceIP}}-{{.Proto}}-{{.Port}}"'
+close: >-
+  nft -a list chain inet filter fwknop_input
+  | grep -F 'comment "fwknop-{{.SourceIP}}-{{.Proto}}-{{.Port}}"'
+  | awk '{print $NF}'
+  | xargs -r -I{} nft delete rule inet filter fwknop_input handle {}
+shutdown: >-
+  nft -a list chain inet filter input
+  | awk '/jump fwknop_input/ {print $NF}'
+  | xargs -r -I{} nft delete rule inet filter input handle {};
+  nft flush chain inet filter fwknop_input 2> /dev/null;
+  nft delete chain inet filter fwknop_input 2> /dev/null;
+  true

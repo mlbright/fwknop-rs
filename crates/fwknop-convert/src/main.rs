@@ -153,11 +153,25 @@ mod tests {
 
     #[test]
     fn server_end_to_end() {
-        let f = file("UDPSERV_PORT 62201;\nPF_ANCHOR_NAME fwknop;\n");
-        let (r, out, _) = run_args(&["-t", "server", "-i", f.path().to_str().unwrap()]);
+        let f = file(
+            "UDPSERV_PORT 62201;\nFIREWD_INPUT_ACCESS ACCEPT, filter, INPUT, 1, FWKNOP_INPUT, 1;\n",
+        );
+        let (r, out, err) = run_args(&["-t", "server", "-i", f.path().to_str().unwrap()]);
         r.unwrap();
-        assert!(out.starts_with("# Detected pf firewall configuration from legacy config.\n"));
-        assert!(out.contains("action_template: pf.yaml\n"));
+        assert!(
+            out.starts_with("# Detected firewalld firewall configuration from legacy config.\n")
+        );
+        assert!(out.contains("action_template: firewalld.yaml\n"));
+        assert_eq!(err, "");
+
+        let f = file("UDPSERV_PORT 62201;\nPF_ANCHOR_NAME fwknop;\n");
+        let (r, out, err) = run_args(&["-t", "server", "-i", f.path().to_str().unwrap()]);
+        r.unwrap();
+        assert_eq!(out, "udp_port: 62201\n");
+        assert!(
+            err.starts_with("warning: pf firewall configuration skipped (PF_ANCHOR_NAME)"),
+            "{err}"
+        );
     }
 
     #[test]

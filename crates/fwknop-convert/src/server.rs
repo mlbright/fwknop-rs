@@ -8,8 +8,12 @@ use crate::yaml::{Val, parse_bool, split_key_value, write_mapping};
 pub struct ServerConversion {
     pub config: BTreeMap<String, Val>,
     pub warnings: Vec<String>,
-    /// The firewall the legacy config was written for, if its keys show it.
+    /// The Linux firewall the legacy config was written for, if its keys
+    /// show it.
     pub firewall: Option<&'static str>,
+    /// Keys for firewalls fwknop-rs does not support (ipfw, pf), by
+    /// firewall.
+    unsupported: std::collections::BTreeMap<&'static str, Vec<String>>,
 }
 
 pub fn parse_server_config(data: &str) -> ServerConversion {
@@ -25,13 +29,18 @@ pub fn parse_server_config(data: &str) -> ServerConversion {
         let upper = key.to_ascii_uppercase();
 
         if let Some(fw) = firewall_for_key(&upper) {
-            conv.firewall = Some(match (conv.firewall, fw) {
-                // iptables keys first seen, firewalld keys win; ipfw and pf
-                // always win (as in fwknop-go).
-                (Some(prev), "iptables") => prev,
-                (Some("ipfw" | "pf"), "firewalld") => conv.firewall.unwrap(),
-                _ => fw,
-            });
+            if matches!(fw, "ipfw" | "pf") {
+                conv.unsupported
+                    .entry(fw)
+                    .or_default()
+                    .push(key.to_string());
+            } else {
+                // Like fwknop-go, firewalld keys win over iptables keys.
+                conv.firewall = Some(match conv.firewall {
+                    Some(prev) if fw == "iptables" => prev,
+                    _ => fw,
+                });
+            }
             continue;
         }
         if upper.starts_with("NFQ_") || upper.starts_with("ENABLE_NFQ_") {
@@ -54,6 +63,13 @@ pub fn parse_server_config(data: &str) -> ServerConversion {
             Action::Warn(reason) => conv.warnings.push(format!("{reason}: key {key} skipped")),
             Action::Unknown => conv.warnings.push(format!("unrecognized key {key}")),
         }
+    }
+    for (fw, keys) in std::mem::take(&mut conv.unsupported) {
+        conv.warnings.push(format!(
+            "{fw} firewall configuration skipped ({}): fwknop-rs supports Linux only; \
+             use action_template: nftables.yaml or iptables.yaml",
+            keys.join(", ")
+        ));
     }
     if let Some(fw) = conv.firewall {
         conv.config
@@ -229,12 +245,31 @@ mod tests {
             ),
             ("IPT_X 1;\nFIREWD_Y 2;\n", "firewalld"),
             ("FIREWD_Y 2;\nIPT_X 1;\n", "firewalld"),
-            ("IPFW_START_RULE_NUM 10000;\n", "ipfw"),
-            ("PF_ANCHOR_NAME fwknop;\n", "pf"),
-            ("PF_ANCHOR_NAME fwknop;\nFIREWD_Y 2;\n", "pf"),
+            ("PF_ANCHOR_NAME fwknop;\nFIREWD_Y 2;\n", "firewalld"),
         ] {
             assert_eq!(parse_server_config(input).firewall, Some(want), "{input}");
         }
+    }
+
+    #[test]
+    fn bsd_firewalls_are_skipped_with_a_warning() {
+        // fwknop-go set action_template: pf.yaml / ipfw.yaml; fwknop-rs
+        // supports Linux only and ships no templates for them.
+        let conv = parse_server_config(
+            "UDPSERV_PORT 62201;\nPF_ANCHOR_NAME fwknop;\nIPFW_START_RULE_NUM 10000;\nIPFW_MAX_RULES 100;\n",
+        );
+        assert_eq!(conv.firewall, None);
+        assert!(!conv.config.contains_key("action_template"));
+        assert_eq!(
+            conv.warnings,
+            [
+                "ipfw firewall configuration skipped (IPFW_START_RULE_NUM, IPFW_MAX_RULES): \
+                 fwknop-rs supports Linux only; use action_template: nftables.yaml or iptables.yaml",
+                "pf firewall configuration skipped (PF_ANCHOR_NAME): \
+                 fwknop-rs supports Linux only; use action_template: nftables.yaml or iptables.yaml",
+            ]
+        );
+        assert!(!render_server(&conv).contains("Detected"));
     }
 
     #[test]

@@ -19,7 +19,7 @@ FWKNOP_GO_DIR ?= ../fwknop-go
 FWKNOP_GO_REF ?= mlbright/main
 INTEROP_DIR   := target/interop
 
-.PHONY: all client server convert clean test lint fmt install interop \
+.PHONY: all client server convert clean test lint fmt install interop firewall-test \
 	install-systemd uninstall-systemd help
 
 all: client server convert  ## Build all binaries into bin/
@@ -80,6 +80,10 @@ interop:  ## Build fwknop-go from FWKNOP_GO_DIR at FWKNOP_GO_REF and run the Go 
 	$(CARGO) build --workspace $(CARGOFLAGS)
 	FWKNOP_GO_BIN_DIR=$(abspath $(INTEROP_DIR)/bin) FWKNOP_RS_BIN_DIR=$(abspath target/debug) \
 		$(CARGO) test -p interop-tests $(CARGOFLAGS) -- --nocapture
+
+firewall-test:  ## Test the nftables and iptables templates on the kernel firewall (Linux, sudo)
+	$(CARGO) build $(CARGOFLAGS) -p fwknop-cli -p fwknopd
+	sudo test/firewall/run.sh target/debug
 
 lint:  ## Run clippy with warnings as errors
 	$(CARGO) clippy --workspace --all-targets $(CARGOFLAGS) -- -D warnings
