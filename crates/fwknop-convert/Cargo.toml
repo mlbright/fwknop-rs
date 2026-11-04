@@ -1,0 +1,24 @@
+[package]
+name = "fwknop-convert"
+version = "0.1.0"
+description = "Convert legacy C fwknop configuration files to the YAML used by fwknop-rs"
+keywords = ["fwknop", "spa", "port-knocking", "firewall"]
+categories = ["command-line-utilities", "config"]
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+buildinfo.workspace = true
+clap.workspace = true
+serde.workspace = true
+serde-saphyr.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+
+[lints]
+workspace = true

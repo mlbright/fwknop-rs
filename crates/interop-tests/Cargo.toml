@@ -1,0 +1,18 @@
+[package]
+name = "interop-tests"
+version = "0.1.0"
+description = "Go <-> Rust interoperability tests for fwknop-rs (run with make interop)"
+publish = false
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+
+[dev-dependencies]
+serde.workspace = true
+serde-saphyr.workspace = true
+tempfile.workspace = true
+
+[lints]
+workspace = true

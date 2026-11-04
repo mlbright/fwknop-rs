@@ -1,0 +1,32 @@
+[package]
+name = "fwknop-cli"
+version = "0.1.0"
+description = "fwknop: client that sends Single Packet Authorization (SPA) requests to an fwknopd server"
+keywords = ["fwknop", "spa", "port-knocking", "firewall"]
+categories = ["command-line-utilities", "network-programming"]
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+
+[[bin]]
+name = "fwknop"
+path = "src/main.rs"
+
+[dependencies]
+anyhow.workspace = true
+base64.workspace = true
+buildinfo.workspace = true
+clap.workspace = true
+fkospa.workspace = true
+jiff.workspace = true
+serde.workspace = true
+serde-saphyr.workspace = true
+ureq = { workspace = true, default-features = false, features = ["rustls"] }
+
+[dev-dependencies]
+tempfile.workspace = true
+
+[lints]
+workspace = true

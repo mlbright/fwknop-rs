@@ -1,0 +1,62 @@
+[workspace]
+resolver = "3"
+members = ["crates/*"]
+
+[workspace.package]
+edition = "2024"
+rust-version = "1.99.1"
+license = "GPL-2.0-only"
+repository = "https://github.com/mlbright/fwknop-rs"
+homepage = "https://github.com/mlbright/fwknop-rs"
+
+[workspace.dependencies]
+# Workspace crates
+fkospa = { path = "crates/fkospa", version = "0.1.0" }
+fwknop = { path = "crates/fwknop", version = "0.1.0" }
+buildinfo = { path = "crates/buildinfo" }
+
+# Crypto (RustCrypto)
+aes = "0.9"
+cbc = "0.2"
+md-5 = "0.11"
+sha1 = "0.11"
+sha2 = "0.11"
+sha3 = "0.12"
+hmac = "0.13"
+subtle = "2.6"
+base64 = "0.23"
+getrandom = "0.4"
+zeroize = "1.9"
+
+# Errors
+thiserror = "2"
+anyhow = "1"
+
+# CLI and config
+clap = { version = "4.6", features = ["derive", "env"] }
+serde = { version = "1", features = ["derive"] }
+serde-saphyr = "2.1"
+
+# System and runtime
+tokio = { version = "1.54", features = ["rt", "net", "time", "signal", "process", "macros", "io-util"] }
+nix = { version = "0.31", features = ["user", "signal", "process", "fs", "syslog"] }
+libc = "0.2"
+socket2 = "0.6"
+ipnet = "2.12"
+jiff = "0.2"
+ureq = "3.5"
+
+# Testing
+proptest = "1.12"
+tempfile = "3"
+
+[workspace.lints.rust]
+unsafe_op_in_unsafe_fn = "deny"
+missing_debug_implementations = "warn"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+
+[profile.release]
+strip = true
+lto = "thin"
