@@ -1,0 +1,13 @@
+# Basic client configuration for SSH access.
+# Place at ~/.fwknoprc or specify with --rc-file.
+#
+# Generate keys with: fwknop --key-gen
+default:
+  destination: spa-server.example.com
+  server_port: 62201
+  access: tcp/22
+  resolve_ip: true
+  key_base64: "YOUR_BASE64_ENCRYPTION_KEY_HERE"
+  hmac_key_base64: "YOUR_BASE64_HMAC_KEY_HERE"
+  digest_type: sha256
+  hmac_digest_type: sha256

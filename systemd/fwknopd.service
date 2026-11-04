@@ -1,0 +1,51 @@
+[Unit]
+Description=fwknop-rs Single Packet Authorization (SPA) server
+Documentation=https://github.com/mlbright/fwknop-rs
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+
+# fwknopd must run in the foreground so systemd can supervise it directly.
+# (In foreground mode fwknopd does not write a PID file; systemd tracks $MAINPID.)
+ExecStart=/usr/local/bin/fwknopd --foreground \
+    --config-file /etc/fwknop/server.yaml \
+    --access-file /etc/fwknop/access.yaml
+
+# fwknopd performs a graceful shutdown on SIGTERM (flushing firewall rules
+# via the configured "shutdown" action).
+KillSignal=SIGTERM
+TimeoutStopSec=30
+
+Restart=on-failure
+RestartSec=5
+
+# systemd creates and owns these directories:
+#   /run/fwknop      (runtime state)
+#   /var/log/fwknop  (log file target in server.yaml)
+RuntimeDirectory=fwknop
+RuntimeDirectoryMode=0750
+LogsDirectory=fwknop
+LogsDirectoryMode=0750
+
+# fwknopd manages the host firewall (iptables / nftables / firewalld / pf),
+# which requires CAP_NET_ADMIN. CAP_NET_RAW covers tools that need raw sockets.
+# The service still starts as root, but its capabilities are bounded to this set.
+AmbientCapabilities=CAP_NET_ADMIN CAP_NET_RAW
+CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_RAW
+
+# Hardening. If your firewall "action" commands fail to apply rules, relax or
+# comment out the directives below (or set ProtectSystem=false) and re-test.
+NoNewPrivileges=true
+ProtectSystem=full
+ProtectHome=true
+PrivateTmp=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target

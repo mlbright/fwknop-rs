@@ -277,6 +277,23 @@ mod tests {
     }
 
     #[test]
+    fn all_valid_keys() {
+        let conv = parse_server_config(
+            "UDPSERV_PORT 62201;\nVERBOSE 2;\nMAX_SPA_PACKET_AGE 120;\nSYSLOG_IDENTITY fwknopd;\n\
+             SYSLOG_FACILITY LOG_DAEMON;\nFWKNOP_RUN_DIR /var/run/fwknop;\n\
+             FWKNOP_PID_FILE /var/run/fwknop/fwknopd.pid;\nACCESS_FILE /etc/fwknop/access.conf;\n\
+             ENABLE_SPA_PACKET_AGING Y;\nENABLE_DIGEST_PERSISTENCE Y;\n",
+        );
+        // fwknop-go also converted FWKNOP_RUN_DIR (to run_dir, which nothing
+        // read); fwknop-rs skips it with a warning.
+        assert_eq!(
+            conv.warnings,
+            ["not used by fwknopd: key FWKNOP_RUN_DIR skipped"]
+        );
+        assert_eq!(conv.config.len(), 9);
+    }
+
+    #[test]
     fn render_has_header_and_sorted_keys() {
         let conv = parse_server_config(
             "UDPSERV_PORT 62201;\nIPT_X 1;\nACCESS_FILE /etc/fwknop/access.yaml;\n",

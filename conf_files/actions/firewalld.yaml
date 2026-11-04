@@ -1,0 +1,9 @@
+# firewalld action template for fwknopd.
+# Creates a dedicated fwknop zone with rich rules.
+# Note: firewalld's --timeout flag provides native rule expiry.
+validate: "which firewall-cmd"
+init: "firewall-cmd --permanent --new-zone=fwknop 2>/dev/null; firewall-cmd --reload"
+check: "firewall-cmd --zone=fwknop --query-rich-rule='rule family=ipv4 source address={{.SourceIP}} port port={{.Port}} protocol={{.Proto}} accept' 2>/dev/null"
+open: "firewall-cmd --zone=fwknop --add-rich-rule='rule family=ipv4 source address={{.SourceIP}} port port={{.Port}} protocol={{.Proto}} accept' --timeout={{.Timeout}}"
+close: "firewall-cmd --zone=fwknop --remove-rich-rule='rule family=ipv4 source address={{.SourceIP}} port port={{.Port}} protocol={{.Proto}} accept' 2>/dev/null"
+shutdown: "firewall-cmd --permanent --delete-zone=fwknop 2>/dev/null; firewall-cmd --reload"

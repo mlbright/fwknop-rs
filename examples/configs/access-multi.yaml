@@ -1,0 +1,35 @@
+# Multi-stanza access configuration with different source restrictions.
+#
+# Stanza matching is order-dependent: the server tries each stanza in order
+# and uses the first one whose source matches and whose key decrypts the packet.
+
+# Admin access from the office network — longer timeout, more ports.
+- source: "10.0.0.0/8"
+  open_ports:
+    - tcp/22
+    - tcp/443
+    - tcp/8080
+  key_base64: "ADMIN_BASE64_ENCRYPTION_KEY"
+  hmac_key_base64: "ADMIN_BASE64_HMAC_KEY"
+  hmac_digest_type: sha256
+  access_timeout: 120
+  max_access_timeout: 300
+  require_username: "admin"
+  require_source_address: true
+
+# General access from any source — SSH only, short timeout.
+- source: "ANY"
+  open_ports:
+    - tcp/22
+  key_base64: "GENERAL_BASE64_ENCRYPTION_KEY"
+  hmac_key_base64: "GENERAL_BASE64_HMAC_KEY"
+  hmac_digest_type: sha256
+  access_timeout: 30
+  max_access_timeout: 60
+
+# Command execution stanza — restricted to a specific host.
+- source: "192.168.1.100/32"
+  key_base64: "CMD_BASE64_ENCRYPTION_KEY"
+  hmac_key_base64: "CMD_BASE64_HMAC_KEY"
+  enable_cmd_exec: true
+  cmd_exec_user: "nobody"

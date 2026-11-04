@@ -138,6 +138,11 @@ fn join_host_port(host: &str, port: u16) -> String {
     }
 }
 
+// The README's examples are compiled and run as doctests.
+#[cfg(doctest)]
+#[doc = include_str!("../../../README.md")]
+struct Readme;
+
 /// Why a knock could not be built or sent.
 #[derive(Debug, thiserror::Error)]
 #[non_exhaustive]

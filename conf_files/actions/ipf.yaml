@@ -1,0 +1,12 @@
+# IPFilter (ipf) action template for fwknopd (Solaris / NetBSD / FreeBSD).
+# Uses ipf with a rules file approach via ipf -f.
+#
+# Note: ipf does not support adding/removing individual rules dynamically
+# in a clean way. This template writes a temporary rules file and reloads.
+# The close command flushes all active rules, similar to the PF limitation.
+validate: "which ipf"
+init: "ipf -E 2>/dev/null; true"
+check: "ipfstat -i | grep -q '{{.SourceIP}} .* port = {{.Port}}'"
+open: "echo 'pass in quick proto {{.Proto}} from {{.SourceIP}} to any port = {{.Port}}' | ipf -f -"
+close: "ipf -Fa"
+shutdown: "ipf -Fa"

@@ -1,0 +1,9 @@
+# Server configuration using nftables for action management.
+udp_port: 62201
+bind_address: "0.0.0.0"
+log_file: /var/log/fwknop/fwknopd.log
+syslog_identity: "fwknopd"
+pid_file: /var/run/fwknop/fwknopd.pid
+max_spa_packet_age: 120
+
+action_template: nftables.yaml

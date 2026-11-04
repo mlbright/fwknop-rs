@@ -1,0 +1,9 @@
+# Basic access configuration — single stanza allowing SSH from any source.
+# Place at /etc/fwknop/access.yaml or specify with --access-file.
+- source: "ANY"
+  open_ports:
+    - tcp/22
+  key_base64: "YOUR_BASE64_ENCRYPTION_KEY_HERE"
+  hmac_key_base64: "YOUR_BASE64_HMAC_KEY_HERE"
+  hmac_digest_type: sha256
+  access_timeout: 30

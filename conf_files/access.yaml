@@ -1,0 +1,13 @@
+# Minimal access.yaml.
+# Keys must match what the client sends. Generate a fresh pair with
+# `fwknop --key-gen` and paste them below; fwknopd will not start with the
+# placeholders.
+#
+- source: "ANY"
+  open_ports:
+    - tcp/22
+  key_base64: "REPLACE_WITH_KEY_FROM_fwknop_--key-gen"
+  hmac_key_base64: "REPLACE_WITH_HMAC_KEY_FROM_fwknop_--key-gen"
+  hmac_digest_type: sha256
+  require_source_address: true
+  access_timeout: 30

@@ -1,0 +1,9 @@
+# nftables action template for fwknopd.
+# Creates a dedicated inet fwknop table and input chain.
+# Rules are tagged with comments for targeted deletion.
+validate: "which nft"
+init: "nft add table inet fwknop; nft add chain inet fwknop input '{ type filter hook input priority -1; policy accept; }'"
+check: "nft list chain inet fwknop input | grep -q '{{.SourceIP}} {{.Proto}} dport {{.Port}} accept'"
+open: "nft add rule inet fwknop input ip saddr {{.SourceIP}} {{.Proto}} dport {{.Port}} accept comment \\\"fwknop-{{.SourceIP}}-{{.Proto}}-{{.Port}}\\\""
+close: "nft -a list chain inet fwknop input | grep 'fwknop-{{.SourceIP}}-{{.Proto}}-{{.Port}}' | awk '{print $NF}' | xargs -I{} nft delete rule inet fwknop input handle {}"
+shutdown: "nft delete table inet fwknop 2>/dev/null"

@@ -190,3 +190,9 @@ pub use spa_data::SpaData;
 
 /// This crate's version.
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
+
+// The developer guide's examples are compiled and run as doctests, so the
+// guide cannot drift from the code.
+#[cfg(doctest)]
+#[doc = include_str!("../../../doc/fkospa-guide.md")]
+struct FkospaGuide;

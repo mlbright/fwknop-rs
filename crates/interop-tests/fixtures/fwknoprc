@@ -1,0 +1,21 @@
+# Legacy C client rc file
+[default]
+SPA_SERVER          127.0.0.1
+SPA_SERVER_PORT     62201
+ACCESS              tcp/22
+ALLOW_IP            127.0.0.1
+KEY_BASE64          bcPRKXdUB6gQblanFrvjggk6YlcTzgBe3peIInFai/c=
+HMAC_KEY_BASE64     ii0oj8m74w0d9+JJrqv5I0z7lxDPb5ECLfQjvJPgGEc=
+USE_HMAC            Y
+DIGEST_TYPE         sha512
+HMAC_DIGEST_TYPE    sha256
+
+[office]
+SPA_SERVER          office.example.com
+FW_TIMEOUT          60
+NAT_ACCESS          192.168.10.5,22
+NAT_LOCAL           N
+NAT_PORT            2222
+RESOLVE_IP_HTTPS    Y
+SPOOF_USER          bob
+GPG_RECIPIENT       nobody

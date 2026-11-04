@@ -1,0 +1,7 @@
+- source: "ANY"
+  open_ports:
+    - tcp/22
+  key_base64: "bcPRKXdUB6gQblanFrvjggk6YlcTzgBe3peIInFai/c="
+  hmac_key_base64: "ii0oj8m74w0d9+JJrqv5I0z7lxDPb5ECLfQjvJPgGEc="
+  hmac_digest_type: sha256
+  access_timeout: 30

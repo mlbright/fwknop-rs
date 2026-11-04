@@ -1,0 +1,12 @@
+# PF action template for fwknopd (OpenBSD / macOS).
+#
+# Note: PF does not support deleting individual rules by match. The close
+# command flushes all rules in the fwknop anchor, so if multiple rules are
+# active simultaneously, closing one closes all. This matches how the C
+# fwknop handled PF.
+validate: "pfctl -s info > /dev/null 2>&1"
+init: "echo 'anchor \"fwknop\"' | pfctl -a fwknop -f - 2>/dev/null; pfctl -a fwknop -F rules 2>/dev/null"
+check: "pfctl -a fwknop -s rules 2>/dev/null | grep -q '{{.SourceIP}} .* port {{.Port}}'"
+open: "echo 'pass in quick proto {{.Proto}} from {{.SourceIP}} to any port {{.Port}}' | pfctl -a fwknop -f -"
+close: "pfctl -a fwknop -F rules"
+shutdown: "pfctl -a fwknop -F rules 2>/dev/null"

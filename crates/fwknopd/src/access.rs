@@ -382,16 +382,26 @@ mod tests {
     #[test]
     fn sample_access_files_parse() {
         let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let interop = root.join("test/interop/access.yaml");
+        load_access_config(interop.to_str().unwrap()).unwrap();
+
+        // The samples hold placeholder keys, so the server refuses to start
+        // until real ones are pasted in; everything else in them must load.
         for rel in [
             "conf_files/access.yaml",
             "examples/configs/access-basic.yaml",
             "examples/configs/access-multi.yaml",
-            "test/interop/access.yaml",
         ] {
-            let path = root.join(rel);
-            if path.exists() {
-                load_access_config(path.to_str().unwrap())
-                    .unwrap_or_else(|e| panic!("{rel}: {e:#}"));
+            let text = std::fs::read_to_string(root.join(rel)).unwrap();
+            let raws: Vec<RawStanza> =
+                serde_saphyr::from_str(&text).unwrap_or_else(|e| panic!("{rel}: {e}"));
+            assert!(!raws.is_empty(), "{rel}");
+            for raw in raws {
+                let err = AccessStanza::resolve(raw).unwrap_err();
+                assert!(
+                    err.to_string().contains("invalid key_base64"),
+                    "{rel}: {err}"
+                );
             }
         }
     }

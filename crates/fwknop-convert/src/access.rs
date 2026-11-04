@@ -220,6 +220,60 @@ WHATEVER              1
     }
 
     #[test]
+    fn all_valid_keys() {
+        let (stanzas, warnings) = parse_access_config(
+            "SOURCE 192.168.1.0/24;\nDESTINATION 10.0.0.0/8;\nOPEN_PORTS tcp/22, tcp/443;\n\
+             RESTRICT_PORTS tcp/23;\nKEY_BASE64 dGVzdGtleQ==;\nHMAC_KEY_BASE64 aG1hY2tleQ==;\n\
+             HMAC_DIGEST_TYPE SHA256;\nENCRYPTION_MODE CBC;\nFW_ACCESS_TIMEOUT 60;\n\
+             MAX_FW_TIMEOUT 300;\nREQUIRE_USERNAME admin;\nREQUIRE_SOURCE_ADDRESS Y;\n\
+             ENABLE_CMD_EXEC Y;\nCMD_EXEC_USER nobody;\nCMD_EXEC_GROUP nogroup;\n\
+             ENABLE_CMD_SUDO_EXEC N;\nCMD_SUDO_EXEC_USER root;\nCMD_SUDO_EXEC_GROUP wheel;\n\
+             ACCESS_EXPIRE 2025-12-31;\nACCESS_EXPIRE_EPOCH 1767225600;\nFORCE_NAT N;\n\
+             FORCE_SNAT N;\nFORCE_MASQUERADE N;\nDISABLE_DNAT N;\nFORWARD_ALL N;\n\
+             CMD_CYCLE_OPEN /usr/bin/open;\nCMD_CYCLE_CLOSE /usr/bin/close;\nCMD_CYCLE_TIMER 30;\n",
+        );
+        assert!(warnings.is_empty(), "{warnings:?}");
+        assert_eq!(stanzas.len(), 1);
+        let keys: Vec<&str> = stanzas[0].keys().map(String::as_str).collect();
+        for want in [
+            "source",
+            "destination",
+            "open_ports",
+            "restrict_ports",
+            "key_base64",
+            "hmac_key_base64",
+            "hmac_digest_type",
+            "encryption_mode",
+            "access_timeout",
+            "max_access_timeout",
+            "require_username",
+            "require_source_address",
+            "enable_cmd_exec",
+            "cmd_exec_user",
+            "cmd_exec_group",
+            "enable_cmd_sudo_exec",
+            "cmd_sudo_exec_user",
+            "cmd_sudo_exec_group",
+            "access_expire",
+            "access_expire_epoch",
+            "force_nat",
+            "force_snat",
+            "force_masquerade",
+            "disable_dnat",
+            "forward_all",
+            "cmd_cycle_open",
+            "cmd_cycle_close",
+            "cmd_cycle_timer",
+        ] {
+            assert!(keys.contains(&want), "missing {want}");
+        }
+        assert_eq!(keys.len(), 28);
+        assert_eq!(stanzas[0]["access_timeout"], Val::Int(60));
+        assert_eq!(stanzas[0]["max_access_timeout"], Val::Int(300));
+        assert_eq!(stanzas[0]["source"], Val::Str("192.168.1.0/24".into()));
+    }
+
+    #[test]
     fn output_loads_as_access_stanzas() {
         let (stanzas, _) = parse_access_config(ACCESS);
         let out = render_access(&stanzas);

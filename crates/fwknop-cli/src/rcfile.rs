@@ -177,3 +177,29 @@ staging:
         );
     }
 }
+
+#[cfg(test)]
+mod sample_tests {
+    use super::*;
+
+    #[test]
+    fn sample_client_configs_load() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+        for rel in [
+            "examples/configs/client-basic.yaml",
+            "examples/configs/client-nat.yaml",
+        ] {
+            let text = std::fs::read_to_string(root.join(rel)).unwrap();
+            let stanzas = parse_rc(&text).unwrap_or_else(|e| panic!("{rel}: {e:#}"));
+            assert!(!stanzas.is_empty(), "{rel}");
+            for (name, _) in &stanzas {
+                let mut layers = Layers::new();
+                apply_stanzas(&mut layers, &stanzas, name).unwrap();
+                assert!(
+                    !layers.string("destination").unwrap().is_empty(),
+                    "{rel} [{name}]"
+                );
+            }
+        }
+    }
+}

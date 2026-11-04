@@ -624,6 +624,7 @@ dependencies = [
 name = "interop-tests"
 version = "0.1.0"
 dependencies = [
+ "fkospa",
  "serde",
  "serde-saphyr",
  "tempfile",

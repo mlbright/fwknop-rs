@@ -1,0 +1,13 @@
+# ipfw action template for fwknopd (FreeBSD / macOS legacy).
+# Uses a dedicated rule number range (10000-10999) for SPA-managed rules.
+#
+# Note: ipfw rules are numbered. This template uses a fixed rule number
+# derived from a hash, which means concurrent rules for different hosts
+# could collide. For production use, consider a more sophisticated
+# numbering scheme.
+validate: "which ipfw"
+init: "ipfw -q flush 2>/dev/null; true"
+check: "ipfw show | grep -q '{{.SourceIP}} .* dst-port {{.Port}}'"
+open: "ipfw -q add 10000 allow {{.Proto}} from {{.SourceIP}} to any {{.Port}}"
+close: "ipfw -q delete 10000"
+shutdown: "ipfw -q flush"
