@@ -71,3 +71,20 @@ difference that is not listed is a bug.
   field.** Go accepted it and treated the timeout as 0.
 - **Version numbers come from each crate's `Cargo.toml`.** There is no
   build-time override like Go's `-ldflags "-X main.version=…"`.
+- **SPA message fields must be UTF-8.** A decoded username, access message,
+  NAT access, server auth or server command that is not valid UTF-8 is
+  rejected. Go accepted arbitrary bytes.
+- **Usernames with unassigned Unicode code points are accepted.** Go's
+  `unicode.IsPrint` rejects them; Rust's standard library has no table for
+  them. Control, whitespace, format and private-use characters are still
+  rejected, as in Go.
+
+## Library API
+
+The `fkospa` and `fwknop` crates keep the behaviour of the Go packages but
+not their shape: an `SpaMessage` with a typed `Request` replaces the flat
+`Message` struct and its functional options, a `KeySet` carries the keys and
+modes, and the encryption modes Go defined but never implemented (ECB, CFB,
+PCBC, OFB, CTR) are gone, along with the `Encrypter`, `Decrypter` and
+`KeyDeriver` interfaces nothing could plug into. See the
+[fkospa guide](../doc/fkospa-guide.md).
