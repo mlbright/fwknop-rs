@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    name: Test (Linux)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      # Installs the toolchain pinned in rust-toolchain.toml, with clippy and rustfmt.
+      - name: Install Rust
+        run: rustup toolchain install
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Format
+        run: cargo fmt --all --check
+
+      - name: Lint
+        run: make lint
+
+      - name: Test
+        run: make test
+
+  interop:
+    name: Go interop (Linux)
+    runs-on: ubuntu-latest
+    steps:
+      # fwknop-rs and fwknop-go side by side, so the Makefile's default
+      # FWKNOP_GO_DIR (../fwknop-go) finds the Go checkout.
+      - uses: actions/checkout@v7
+        with:
+          path: fwknop-rs
+
+      - uses: actions/checkout@v7
+        with:
+          repository: mlbright/fwknop-go
+          ref: main
+          path: fwknop-go
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: fwknop-go/go.mod
+          cache-dependency-path: fwknop-go/go.sum
+
+      - name: Install Rust
+        working-directory: fwknop-rs
+        run: rustup toolchain install
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: fwknop-rs
+
+      - name: Go <-> Rust interop tests
+        working-directory: fwknop-rs
+        run: make interop FWKNOP_GO_REF=HEAD

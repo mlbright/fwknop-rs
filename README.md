@@ -1,5 +1,7 @@
 # fwknop-rs
 
+[![CI](https://github.com/mlbright/fwknop-rs/actions/workflows/ci.yml/badge.svg)](https://github.com/mlbright/fwknop-rs/actions/workflows/ci.yml)
+
 A Rust implementation of [fwknop](https://www.cipherdyne.org/fwknop/)
 (FireWall KNock OPerator): Single Packet Authorization (SPA) for strong
 service concealment. It is a translation of
@@ -22,7 +24,8 @@ decisions are in [docs/adr/](docs/adr/).
 | `fwknopd` | The `fwknopd` server, which receives SPA packets and runs actions to open firewall access |
 | `fwknop-convert` | Converts legacy C fwknop config files to YAML |
 
-Linux and macOS are supported.
+Linux and macOS are supported. CI runs the tests, and the interop tests
+against fwknop-go, on Linux.
 
 ## Installation
 
