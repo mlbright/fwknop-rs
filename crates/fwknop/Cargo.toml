@@ -1,6 +1,6 @@
 [package]
 name = "fwknop"
-version = "0.1.0"
+version.workspace = true
 description = "Send an fwknop Single Packet Authorization (SPA) knock in one call"
 keywords = ["fwknop", "spa", "port-knocking", "firewall"]
 categories = ["network-programming"]

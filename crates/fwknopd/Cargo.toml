@@ -1,6 +1,6 @@
 [package]
 name = "fwknopd"
-version = "0.1.0"
+version.workspace = true
 description = "fwknopd: server that receives Single Packet Authorization (SPA) packets and opens firewall access"
 keywords = ["fwknop", "spa", "port-knocking", "firewall"]
 categories = ["command-line-utilities", "network-programming"]

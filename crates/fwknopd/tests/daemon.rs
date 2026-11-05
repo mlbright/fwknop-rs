@@ -376,7 +376,13 @@ fn startup_errors_reach_the_terminal() {
 fn version_and_dump_config() {
     let out = Command::new(BIN).arg("-V").output().unwrap();
     let text = String::from_utf8(out.stdout).unwrap();
-    assert!(text.starts_with("fwknopd (Rust) version 0.1.0"), "{text}");
+    assert!(
+        text.starts_with(concat!(
+            "fwknopd (Rust) version ",
+            env!("CARGO_PKG_VERSION")
+        )),
+        "{text}"
+    );
     assert!(text.trim_end().ends_with("(SPA protocol 3.0.0)"));
 
     let s = Setup::new();

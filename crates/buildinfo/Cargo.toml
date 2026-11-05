@@ -1,6 +1,6 @@
 [package]
 name = "buildinfo"
-version = "0.1.0"
+version.workspace = true
 description = "Version and git metadata embedded into the fwknop-rs binaries"
 publish = false
 edition.workspace = true

@@ -121,3 +121,13 @@ _Avoid_: timeout cap, max timeout
 **Max packet age**:
 How far an SPA message's timestamp may be from the server's clock, in either direction, for the packet to be accepted.
 _Avoid_: packet timeout, freshness window
+
+### Versions
+
+**Protocol version**:
+The version of the SPA message format, carried inside every SPA message.
+_Avoid_: version (unqualified), SPA version
+
+**Release version**:
+The version of fwknop-rs that a release carries, shared by all of its programs and libraries.
+_Avoid_: version (unqualified), crate version, tag

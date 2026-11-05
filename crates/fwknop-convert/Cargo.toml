@@ -1,6 +1,6 @@
 [package]
 name = "fwknop-convert"
-version = "0.1.0"
+version.workspace = true
 description = "Convert legacy C fwknop configuration files to the YAML used by fwknop-rs"
 keywords = ["fwknop", "spa", "port-knocking", "firewall"]
 categories = ["command-line-utilities", "config"]

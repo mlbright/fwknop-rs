@@ -3,6 +3,9 @@ resolver = "3"
 members = ["crates/*"]
 
 [workspace.package]
+# The release version, shared by every crate. A release tag must be `v` plus
+# this version; see "Releasing" in README.md.
+version = "0.1.0"
 edition = "2024"
 rust-version = "1.99.1"
 license = "GPL-2.0-only"
@@ -10,7 +13,7 @@ repository = "https://github.com/mlbright/fwknop-rs"
 homepage = "https://github.com/mlbright/fwknop-rs"
 
 [workspace.dependencies]
-# Workspace crates
+# Workspace crates. Keep these versions equal to the release version above.
 fkospa = { path = "crates/fkospa", version = "0.1.0" }
 fwknop = { path = "crates/fwknop", version = "0.1.0" }
 buildinfo = { path = "crates/buildinfo" }

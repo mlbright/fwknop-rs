@@ -29,6 +29,38 @@ against fwknop-go, there.
 
 ## Installation
 
+### Prebuilt release
+
+Each [release](https://github.com/mlbright/fwknop-rs/releases) has a static
+build for amd64 (`x86_64-unknown-linux-musl`) and arm64
+(`aarch64-unknown-linux-musl`). The programs have no runtime dependencies, so
+they run on any Linux distribution.
+
+```bash
+version=0.1.0
+target=x86_64-unknown-linux-musl   # or aarch64-unknown-linux-musl
+name=fwknop-rs-$version-$target
+url=https://github.com/mlbright/fwknop-rs/releases/download/v$version
+
+curl -fLO "$url/$name.tar.gz"
+curl -fLO "$url/SHA256SUMS"
+sha256sum --check --ignore-missing SHA256SUMS
+
+# Optional: check that this repository's release workflow built it.
+gh attestation verify "$name.tar.gz" --repo mlbright/fwknop-rs
+
+tar -xzf "$name.tar.gz"
+sudo install -m 0755 "$name"/fwknop "$name"/fwknopd "$name"/fwknop-convert /usr/local/bin/
+```
+
+Each tarball unpacks to a folder of the same name holding the three
+programs, `LICENSE`, this README, the reference configs (`conf_files/`),
+example configs (`examples/configs/`) and the systemd unit (`systemd/`). To
+run `fwknopd` as a service from it, see
+[Running fwknopd under systemd](#running-fwknopd-under-systemd).
+
+### From source
+
 From a checkout:
 
 ```bash
@@ -103,12 +135,39 @@ sudo make uninstall-systemd   # Remove the unit and binary
 
 ### Versioning
 
-Each binary is versioned by its crate's `Cargo.toml`. A build from a git
-checkout also records the commit, its time and whether the tree was dirty:
+All crates share one release version, set once in the root `Cargo.toml`
+(`[workspace.package] version`). A build from a git checkout also records the
+commit, its time and whether the tree was dirty:
 
 ```text
 fwknop (Rust) version 0.1.0 (commit: fa2a972fabb4, built: 2026-04-07T03:11:46Z) (SPA protocol 3.0.0)
 ```
+
+### Releasing
+
+Pushing a tag `v<release version>` runs
+[`.github/workflows/release.yml`](.github/workflows/release.yml), which
+publishes a GitHub release with a static tarball for each architecture,
+`SHA256SUMS`, and a build attestation for each tarball.
+
+1. In the root `Cargo.toml`, set the new release version in
+   `[workspace.package]` and in the `fkospa` and `fwknop` entries under
+   `[workspace.dependencies]`.
+2. Run `cargo check` to update `Cargo.lock`, then commit and push `main`.
+3. Tag that commit and push the tag. An annotated tag's message becomes the
+   top of the release notes, above the commits since the previous release:
+
+   ```bash
+   git tag -a v0.2.0        # write the release notes in the editor
+   git push origin v0.2.0
+   ```
+
+Before building, the workflow checks that the tag is `v` plus the release
+version, that the tagged commit is on `main`, and that no release exists for
+the tag yet. It then runs all of CI, and on native amd64 and arm64 runners
+tests the musl build and checks each program's `--version`. A version with a
+hyphen (`0.2.0-rc.1`) is published as a pre-release. A published release is
+never changed: fix a bad one by releasing the next version.
 
 ---
 
@@ -438,6 +497,19 @@ sudo make install-systemd PREFIX=/usr SYSCONFDIR=/etc/fwknop UNITDIR=/lib/system
 > If you change `PREFIX`, edit the `ExecStart=` path in
 > `/etc/systemd/system/fwknopd.service` to match (it defaults to
 > `/usr/local/bin/fwknopd`).
+
+From an unpacked [release tarball](#prebuilt-release), install the same
+files by hand:
+
+```bash
+cd fwknop-rs-<version>-<target>
+sudo install -m 0755 fwknopd /usr/local/bin/fwknopd
+sudo install -d /etc/fwknop/actions
+sudo install -m 0644 conf_files/server.yaml /etc/fwknop/server.yaml.sample
+sudo install -m 0600 conf_files/access.yaml /etc/fwknop/access.yaml.sample
+sudo install -m 0644 conf_files/actions/*.yaml /etc/fwknop/actions/
+sudo install -m 0644 systemd/fwknopd.service /etc/systemd/system/fwknopd.service
+```
 
 #### Configure
 

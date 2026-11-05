@@ -1,6 +1,6 @@
 [package]
 name = "fwknop-cli"
-version = "0.1.0"
+version.workspace = true
 description = "fwknop: client that sends Single Packet Authorization (SPA) requests to an fwknopd server"
 keywords = ["fwknop", "spa", "port-knocking", "firewall"]
 categories = ["command-line-utilities", "network-programming"]

@@ -219,6 +219,12 @@ mod tests {
     fn version() {
         let (r, out, _) = run_args(&["-V"]);
         r.unwrap();
-        assert!(out.starts_with("fwknop-convert version 0.1.0"), "{out}");
+        assert!(
+            out.starts_with(concat!(
+                "fwknop-convert version ",
+                env!("CARGO_PKG_VERSION")
+            )),
+            "{out}"
+        );
     }
 }

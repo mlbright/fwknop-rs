@@ -1,6 +1,6 @@
 [package]
 name = "fkospa"
-version = "0.1.0"
+version.workspace = true
 description = "fwknop Single Packet Authorization (SPA) protocol: build, encrypt, decrypt and decode SPA messages"
 keywords = ["fwknop", "spa", "port-knocking", "firewall"]
 categories = ["cryptography", "network-programming"]

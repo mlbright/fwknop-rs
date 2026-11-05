@@ -1,6 +1,6 @@
 [package]
 name = "interop-tests"
-version = "0.1.0"
+version.workspace = true
 description = "Go <-> Rust interoperability tests for fwknop-rs (run with make interop)"
 publish = false
 edition.workspace = true

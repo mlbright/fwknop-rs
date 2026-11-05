@@ -77,7 +77,10 @@ fn key_gen() {
 #[test]
 fn version() {
     let out = run_args(&["-V"]).unwrap().out;
-    assert!(out.starts_with("fwknop (Rust) version 0.1.0"), "{out}");
+    assert!(
+        out.starts_with(concat!("fwknop (Rust) version ", env!("CARGO_PKG_VERSION"))),
+        "{out}"
+    );
     assert!(out.trim_end().ends_with("(SPA protocol 3.0.0)"), "{out}");
 }
 
